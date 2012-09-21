@@ -16,7 +16,7 @@ This is useful anywhere databases aren't feasible.  It works great on the
 ### Dependency
 
 ```clojure
-[alandipert/enduro "1.0.1"]
+[alandipert/enduro "1.0.2"]
 ```
 
 ### Example
