@@ -1,6 +1,6 @@
 # enduro
 
-<img alt="Enduro Racing" src="https://dl.dropbox.com/u/12379861/enduro.jpg">
+![enduro_rois_3](https://dl.dropbox.com/u/12379861/enduro.jpg)
 
 Enduro provides a reference type similar to [Clojure's native
 atom](http://clojure.org/atoms), except that enduro's is durable - its
