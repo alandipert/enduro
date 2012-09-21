@@ -1,6 +1,6 @@
 # enduro
 
-![enduro_rois_3](https://dl.dropbox.com/u/12379861/enduro.jpg)
+<iframe width="420" height="315" src="http://www.youtube.com/embed/zpHC8HQyKgE" frameborder="0" allowfullscreen></iframe>
 
 Enduro provides a reference type similar to [Clojure's native
 atom](http://clojure.org/atoms), except that enduro's is durable - its
@@ -81,10 +81,3 @@ like `enduro_pending5327124809540815880.clj`.
 Copyright © 2012 Alan Dipert
 
 Distributed under the Eclipse Public License, the same as Clojure.
-
-The photo
-"[enduro_rois_3](http://www.flickr.com/photos/arufe/3338411518/)" in
-this README is copyright © 2009 José Arufe and made available under a
-[Creative
-Commons](http://creativecommons.org/licenses/by-nc-sa/2.0/deed.en)
-license.
