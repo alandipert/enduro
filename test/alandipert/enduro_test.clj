@@ -66,4 +66,11 @@
                  (let [file (tmp)
                        a1 (e/atom 0 file)]
                    (e/release! a1)
-                   @a1)))))
+                   @a1))))
+
+  (testing "swapping after release throws"
+    (is (thrown? IllegalStateException
+                 (let [file (tmp)
+                       a1 (e/atom 0 file)]
+                   (e/release! a1)
+                   (e/swap! a1 inc))))))

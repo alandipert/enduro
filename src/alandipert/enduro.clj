@@ -72,15 +72,17 @@
                (throw (IllegalStateException. "Underlying resource has been released"))))
   IDurableAtom
   (-swap! [a f args]
-    (loop []
-      (let [v (.get state)
-            newv (apply f v args)]
-        (validate @validator newv)
-        (if (locking resource
-              (and (.compareAndSet state v newv)
-                   (-commit! resource newv)))
-          (do (notify-watches a @watches v newv) newv)
-          (recur)))))
+    (if @valid?
+      (loop []
+        (let [v (.get state)
+              newv (apply f v args)]
+          (validate @validator newv)
+          (if (locking resource
+                (and (.compareAndSet state v newv)
+                     (-commit! resource newv)))
+            (do (notify-watches a @watches v newv) newv)
+            (recur))))
+      (throw (IllegalStateException. "Underlying resource has been released"))))
   (-reset! [a v]
     (-swap! a (constantly v) ()))
   (-release-atom! [a]
