@@ -1,0 +1,1 @@
+web: lein with-profile production trampoline run -m enduro-example-hitcounter.core $PORT
