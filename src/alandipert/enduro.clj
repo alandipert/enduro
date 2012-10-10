@@ -12,8 +12,7 @@
 
 (defprotocol IDurableAtom
   "A durable atom."
-  (-swap! [a f args])
-  (-reset! [a newval]))
+  (-swap! [a f args]))
 
 (defn validate
   [f v]
@@ -53,9 +52,7 @@
               (and (.compareAndSet state v newv)
                    (-commit! resource newv)))
           (do (notify-watches a @watches v newv) newv)
-          (recur)))))
-  (-reset! [a v]
-    (-swap! a (constantly v) ())))
+          (recur))))))
 
 (defn swap!
   "Atomically swaps the value of enduro-atom to be:
@@ -71,7 +68,7 @@
   current value and commits newval to the underlying resource.
   Returns newval."
   [enduro-atom newval]
-  (-reset! enduro-atom newval))
+  (swap! enduro-atom (constantly newval)))
 
 (defn atom*
   [initial-state ^alandipert.enduro.IDurableBackend resource opts]
