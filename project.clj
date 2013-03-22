@@ -1,4 +1,4 @@
-(defproject alandipert/enduro "1.1.2"
+(defproject alandipert/enduro "1.1.3"
   :description "Durable Atoms for Clojure"
   :url "https://github.com/alandipert/enduro"
   :license {:name "Eclipse Public License"
