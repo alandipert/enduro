@@ -23,7 +23,7 @@ Pi](http://www.raspberrypi.org/)!
 ### Dependency
 
 ```clojure
-[alandipert/enduro "1.1.0"]
+[alandipert/enduro "1.1.2"]
 ```
 
 ### Example: File-backed
@@ -63,6 +63,7 @@ Pi](http://www.raspberrypi.org/)!
 ```clojure
 (ns your-ns
   (:require [alandipert.enduro :as e]
+            [alandipert.enduro.pgsql :as pg]
             [clojure.java.jdbc :as sql])
 
 ;; In this example, which is compatible with usage on Heroku, we first
@@ -84,7 +85,7 @@ Pi](http://www.raspberrypi.org/)!
 
 (def addresses
   (delay
-   (e/postgresql-atom
+   (pg/postgresql-atom
     {}
     (db-config)
     "enduro")))
