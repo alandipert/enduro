@@ -1,8 +1,7 @@
 (ns alandipert.enduro
   (:refer-clojure :exclude [swap! reset!])
   (:require [clojure.java.io :as io]
-            [clojure.core :as core]
-            [clojure.java.jdbc :as sql])
+            [clojure.core :as core])
   (:import (java.io File FileOutputStream OutputStreamWriter PushbackReader)
            java.util.concurrent.atomic.AtomicReference))
 
@@ -136,51 +135,6 @@
                     init)
                   (FileBackend. file)
                   (apply hash-map opts))))
-
-;;; PostgreSQL-backed atom
-
-(defn create-enduro-table! [table-name]
-  (sql/create-table table-name [:id :int] [:value :text]))
-
-(defn table-exists? [table-name]
-  (sql/with-query-results
-    tables ["SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"]
-    (get (into #{} (map :table_name tables)) table-name)))
-
-(defn get-value [table-name]
-  (sql/with-query-results rows
-    [(str "SELECT value FROM " table-name " LIMIT 1")]
-    (read-string (:value (first rows)))))
-
-(deftype PostgreSQLBackend [db-config table-name]
-  IDurableBackend
-  (-commit!
-    [this value]
-    (sql/with-connection db-config
-      (sql/transaction
-       (sql/update-or-insert-values
-        table-name ["id=?" 0] {:id 0 :value (pr-str value)})))))
-
-(defn postgresql-atom
-  #=(with-options-doc "Creates and returns a PostgreSQL-backed atom. If the location
-  denoted by the combination of db-config and table-name exists, it is
-  read and becomes the initial value. Otherwise, the initial value is
-  init and the table denoted by table-name is updated.
-
-  db-config can be a String URI, a map
-  of :username/:password/:host/:port, or any other type of
-  configuration object understood by
-  clojure.java.jdbc/with-connection")
-  [init db-config table-name & opts]
-  (atom*
-   (sql/with-connection db-config
-     (or (and (table-exists? table-name)
-              (get-value table-name))
-         (do
-           (create-enduro-table! table-name)
-           init)))
-   (PostgreSQLBackend. db-config table-name)
-   (apply hash-map opts)))
 
 ;;; Memory-backed atom
 
