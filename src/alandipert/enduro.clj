@@ -108,10 +108,6 @@
         (-> pending-fos .getChannel (.force true))
         (-> pending-fos .getFD .sync)
         (.close pending-fos)
-        ;; .delete might return false here because a swap! in another
-        ;; thread has already deleted f.  It's OK though, because the
-        ;; last .renameTo wins.
-        (.delete f)
         (.renameTo pending f)))))
 
 (defn read-file
