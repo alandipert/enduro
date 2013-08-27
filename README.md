@@ -23,7 +23,7 @@ Pi](http://www.raspberrypi.org/)!
 ### Dependency
 
 ```clojure
-[alandipert/enduro "1.1.2"]
+[alandipert/enduro "1.1.3"]
 ```
 
 ### Example: File-backed
