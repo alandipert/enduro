@@ -126,11 +126,9 @@
   [init file & opts]
   (let [file (io/file file)
         path (.getAbsolutePath file)]
-    (atom* (if (.exists file)
-                    (or (read-file file) init)
-                    init)
-                  (FileBackend. file)
-                  (apply hash-map opts))))
+    (atom* (if (.exists file) (or (read-file file) init) init)
+           (FileBackend. (doto file io/make-parents))
+           (apply hash-map opts))))
 
 ;;; Memory-backed atom
 
