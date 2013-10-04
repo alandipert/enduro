@@ -113,16 +113,15 @@
     (let [pending (make-pending)
           pending-fos (FileOutputStream. pending)
           pending-writer (OutputStreamWriter. pending-fos)]
-      (try
-        (print-method value pending-writer)
-        (.flush pending-writer)
-        (-> pending-fos .getChannel (.force true))
-        (-> pending-fos .getFD .sync)
-        (.close pending-fos)
-        (Files/move (.toPath pending)
-                    (.toPath f)
-                    (into-array [StandardCopyOption/ATOMIC_MOVE
-                                 StandardCopyOption/REPLACE_EXISTING]))))))
+      (print-method value pending-writer)
+      (.flush pending-writer)
+      (-> pending-fos .getChannel (.force true))
+      (-> pending-fos .getFD .sync)
+      (.close pending-fos)
+      (Files/move (.toPath pending)
+                  (.toPath f)
+                  (into-array [StandardCopyOption/ATOMIC_MOVE
+                               StandardCopyOption/REPLACE_EXISTING])))))
 
 (defn read-file
   "Reads the first Clojure expression from f, returning nil if f is empty."

@@ -32,7 +32,7 @@
          (future
            (e/swap! ea inc)))
 
-       (.await latch 3000 java.util.concurrent.TimeUnit/MILLISECONDS)
+       (.await latch)
 
        (is (= n (e/read-file file))))))
 
@@ -48,7 +48,7 @@
          (future
            (e/swap! ea inc)))
 
-       (.await latch 3000 java.util.concurrent.TimeUnit/MILLISECONDS)
+       (.await latch)
 
        (is (= n @ea))))))
 
