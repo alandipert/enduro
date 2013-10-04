@@ -3,7 +3,8 @@
   (:require [clojure.java.io :as io]
             [clojure.core :as core])
   (:import (java.io File FileOutputStream OutputStreamWriter PushbackReader)
-           java.util.concurrent.atomic.AtomicReference))
+           java.util.concurrent.atomic.AtomicReference
+           (java.nio.file Files StandardCopyOption)))
 
 (defprotocol IDurableBackend
   "Represents a durable resource."
@@ -95,11 +96,21 @@
 
 ;;; File-backed atom
 
-(deftype FileBackend [^File f]
+(let [n (atom 0)]
+  (defn create-pending [dir]
+    (doto (io/file
+           dir
+           (str "enduro_pending"
+                (clojure.core/swap! n inc')
+                (System/nanoTime)
+                ".clj"))
+      io/make-parents)))
+
+(deftype FileBackend [^File f, make-pending]
   IDurableBackend
   (-commit!
     [this value]
-    (let [pending (File/createTempFile "enduro_pending" ".clj")
+    (let [pending (make-pending)
           pending-fos (FileOutputStream. pending)
           pending-writer (OutputStreamWriter. pending-fos)]
       (try
@@ -108,7 +119,10 @@
         (-> pending-fos .getChannel (.force true))
         (-> pending-fos .getFD .sync)
         (.close pending-fos)
-        (.renameTo pending f)))))
+        (Files/move (.toPath pending)
+                    (.toPath f)
+                    (into-array [StandardCopyOption/ATOMIC_MOVE
+                                 StandardCopyOption/REPLACE_EXISTING]))))))
 
 (defn read-file
   "Reads the first Clojure expression from f, returning nil if f is empty."
@@ -122,13 +136,20 @@
   is not empty, it is read and becomes the initial value.  Otherwise,
   the initial value is init and a new file is created and written to.
 
-  file can be a string path to a file or a java.io.File object.")
+  file can be a string path to a file or a java.io.File object.
+
+  If the :pending-dir option is supplied, temporary files are written
+  here instead of to the current directory.  Note: :pending-dir and
+  file must be on the same file system in order for the move operation
+  to be atomic.")
   [init file & opts]
   (let [file (io/file file)
-        path (.getAbsolutePath file)]
+        path (.getAbsolutePath file)
+        options (apply hash-map opts)]
     (atom* (if (.exists file) (or (read-file file) init) init)
-           (FileBackend. (doto file io/make-parents))
-           (apply hash-map opts))))
+           (FileBackend. (doto file io/make-parents)
+                         (partial create-pending (:pending-dir options)))
+           options)))
 
 ;;; Memory-backed atom
 

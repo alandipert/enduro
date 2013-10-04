@@ -23,7 +23,7 @@ Pi](http://www.raspberrypi.org/)!
 ### Dependency
 
 ```clojure
-[alandipert/enduro "1.1.3"]
+[alandipert/enduro "1.1.4"]
 ```
 
 ### Example: File-backed
@@ -36,11 +36,15 @@ Pi](http://www.raspberrypi.org/)!
   (:require [alandipert.enduro :as e])
 
 ;; Call e/file-atom with a value and a path to a file to create a
-;; file-backed atom. If the file is empty or doesn't exist, it
-;; will be initialized with value. If the file isn't empty, your
-;; initial value will be ignored and the file will be read.
+;; file-backed atom. If the file is empty or doesn't exist, it will be
+;; initialized with value. If the file isn't empty, your initial value
+;; will be ignored and the file will be read.
 
-(def addresses (e/file-atom {} "/tmp/addresses.clj"))
+;; :pending-dir should be specified if the data file resides on a file
+;; system other than the current one.  This ensures atomicity of the
+;; underlying file move.
+
+(def addresses (e/file-atom {} "/tmp/addresses.clj" :pending-dir "/tmp"))
 
 ;; You can add watches to enduro atoms like any other reference type.
 
@@ -125,13 +129,12 @@ very small data only.
 
 ### In-transaction Data Recovery
 
-File-backed enduro atoms use temporary files as created by
-`File/createTempFile` to store in-transaction data, and depend on the
-atomicity of `File.renameTo` on your system.
+File-backed enduro atoms use temporary files to store in-transaction
+data and depend on the atomicity of `java.nio.Files/move`.
 
 If a transaction fails exceptionally or irrecoverably, the (likely
-corrupt) in-transaction data can be found in your tmp directory with a
-name like `enduro_pending5327124809540815880.clj`.
+corrupt) in-transaction data can be found in your :pending-dir
+directory with a name like `enduro_pending5327124809540815880.clj`.
 
 Currently, PostgreSQL-backed atoms do not persist failed transaction
 data.

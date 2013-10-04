@@ -1,6 +1,7 @@
 (ns alandipert.enduro-test
   (:use clojure.test)
-  (:require [alandipert.enduro :as e])
+  (:require [alandipert.enduro :as e]
+            [clojure.java.io :as io])
   (:import java.io.File
            java.util.concurrent.CountDownLatch))
 
@@ -13,7 +14,7 @@
   (testing "initialization of file"
     (time
      (let [file (tmp)
-           ea (e/file-atom ["testing" 1 2 3] file)]
+           ea (e/file-atom ["testing" 1 2 3] file :pending-dir "/tmp")]
        (println "Wrote to" file)
        (is (= ["testing" 1 2 3] (e/read-file file)))))))
 
@@ -21,7 +22,7 @@
   (testing "concurrency of file atom"
     (time
      (let [file (tmp)
-           ea (e/file-atom 0 file)
+           ea (e/file-atom 0 file :pending-dir "/tmp")
            n 100
            latch (CountDownLatch. n)]
 
@@ -54,13 +55,13 @@
 (deftest usage
   (testing "metadata"
     (let [file (tmp)
-           ea (e/file-atom 0 file :meta {:foo "abc"})]
+           ea (e/file-atom 0 file :pending-dir "/tmp" :meta {:foo "abc"})]
       (is (= {:foo "abc"} (meta ea)))))
 
   (testing "validation"
-    (is (= 0 @(e/file-atom 0 (tmp) :validator even?)))
+    (is (= 0 @(e/file-atom 0 (tmp) :pending-dir "/tmp" :validator even?)))
     (is (thrown? IllegalStateException (e/file-atom 1 (tmp) :validator even?)))
-    (is (thrown? IllegalStateException (let [ea (e/file-atom 0 (tmp) :validator #(< % 1))]
+    (is (thrown? IllegalStateException (let [ea (e/file-atom 0 (tmp) :pending-dir "/tmp" :validator #(< % 1))]
                                          (e/swap! ea inc))))
-    (let [ea (e/file-atom 0 (tmp) :validator #(< % 10))]
+    (let [ea (e/file-atom 0 (tmp) :pending-dir "/tmp" :validator #(< % 10))]
       (is (= 1 (e/swap! ea inc))))))
