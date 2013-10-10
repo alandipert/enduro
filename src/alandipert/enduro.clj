@@ -50,7 +50,8 @@
         (validate @validator newv)
         (if (locking resource
               (and (.compareAndSet state v newv)
-                   (-commit! resource newv)))
+                   (binding [*print-length* nil]
+                     (-commit! resource newv))))
           (do (notify-watches a @watches v newv) newv)
           (recur))))))
 

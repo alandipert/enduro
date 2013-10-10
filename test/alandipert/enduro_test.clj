@@ -15,7 +15,6 @@
     (time
      (let [file (tmp)
            ea (e/file-atom ["testing" 1 2 3] file :pending-dir "/tmp")]
-       (println "Wrote to" file)
        (is (= ["testing" 1 2 3] (e/read-file file)))))))
 
 (deftest writes
@@ -53,6 +52,12 @@
        (is (= n @ea))))))
 
 (deftest usage
+  (testing "*print-length* unbound"
+    (let [file (tmp)
+          ea (binding [*print-length* 2]
+               (e/file-atom [1 2 3] file :pending-dir "/tmp"))]
+      (is (not (.endsWith (slurp file) "...]")))))
+
   (testing "metadata"
     (let [file (tmp)
            ea (e/file-atom 0 file :pending-dir "/tmp" :meta {:foo "abc"})]
