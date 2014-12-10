@@ -123,7 +123,7 @@ Pi](http://www.raspberrypi.org/)!
 This project is built, tested, and deployed using
 [boot](https://github.com/boot-clj/boot).
 
-Run tests: `boot test`
+Run tests: `boot tests`
 
 ### Appropriate Usage
 
