@@ -22,9 +22,7 @@ Pi](http://www.raspberrypi.org/)!
 
 ### Dependency
 
-```clojure
-[alandipert/enduro "1.1.5"]
-```
+[![Clojars Project](http://clojars.org/alandipert/enduro/latest-version.svg?cache=1)](https://clojars.org/alandipert/enduro)
 
 ### Example: File-backed
 
@@ -119,6 +117,13 @@ Pi](http://www.raspberrypi.org/)!
 ```
 
 ## Notes
+
+### Development
+
+This project is built, tested, and deployed using
+[boot](https://github.com/boot-clj/boot).
+
+Run tests: `boot test`
 
 ### Appropriate Usage
 
