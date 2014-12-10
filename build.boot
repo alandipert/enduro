@@ -17,11 +17,11 @@
   "Run tests in a pod using clojure.test"
   [d dirs NAME #{str} "Source directories containing tests to add to the classpath."
    n namespaces NAMESPACE #{sym} "Symbols of the namespaces to run tests in."
-   p preds PRED #{str} "Clojure expressions that are evaluated with % bound to a Var in a namespace under test.  All must evaluate to true for a Var to be considered for testing by clojure.test/test-vars."]
+   p preds PRED #{any} "Clojure expressions that are evaluated with % bound to a Var in a namespace under test.  All must evaluate to true for a Var to be considered for testing by clojure.test/test-vars."]
   (with-pre-wrap
     (if (seq namespaces)
       (let [pod     (pod/make-pod (update-in (get-env) [:src-paths] into dirs))
-            predf  `(~'fn [~'%] (and true ~@(map read-string preds)))
+            predf  `(~'fn [~'%] (and true ~@preds))
             summary (pod/eval-in pod
                       (require '[clojure.test :as t])
                       (doseq [ns '~namespaces] (require ns))
@@ -49,4 +49,4 @@
                      :url  "http://www.eclipse.org/legal/epl-v10.html"}]
  tests [:dirs       '#{"test"}
         :namespaces '#{alandipert.enduro-test}
-        :preds      '#{"((comp not :postgres meta) %)"}])
+        :preds      '#{((comp not :postgres meta) %)}])
