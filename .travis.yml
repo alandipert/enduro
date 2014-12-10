@@ -5,4 +5,4 @@ install:
 - wget -O boot https://github.com/boot-clj/boot/releases/download/v2-r1/boot.sh
 - chmod 755 boot
 - ./boot -V
-script: ./boot tests
+script: ./boot test
