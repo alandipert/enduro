@@ -21,7 +21,7 @@
   (with-pre-wrap
     (if (seq namespaces)
       (let [pod     (pod/make-pod (update-in (get-env) [:src-paths] into dirs))
-            predf  `(~'fn [~'%] (and true ~@preds))
+            predf  `(~'fn [~'%] (and ~@preds))
             summary (pod/eval-in pod
                       (require '[clojure.test :as t])
                       (doseq [ns '~namespaces] (require ns))
@@ -36,7 +36,9 @@
                         (-> (reduce (partial merge-with +) ns-results)
                             (assoc :type :summary)
                             (doto t/do-report))))]
-        (when (> (apply + (map summary [:fail :error])) 0) (System/exit 1)))
+        (when (> (apply + (map summary [:fail :error])) 0)
+          (shutdown-agents)
+          (System/exit 1)))
       (println "No namespaces were tested."))))
 
 (task-options!
