@@ -8,11 +8,13 @@
 
 (defprotocol IDurableBackend
   "Represents a durable resource."
-  (-commit! [this value] "Attempt to commit value to resource, returning true if successful and false otherwise."))
+  (-commit! [this value] "Attempt to commit value to resource, returning true if successful and false otherwise.")
+  (-remove! [this] "Delete the persistent value. Clean up. Future calls to swap! or reset! will throw an exception."))
 
 (defprotocol IDurableAtom
   "A durable atom."
-  (-swap! [a f args]))
+  (-swap! [a f args])
+  (-release! [a]))
 
 (defn validate
   [f v]
@@ -31,7 +33,8 @@
                      validator
                      watches
                      ^alandipert.enduro.IDurableBackend resource
-                     ^AtomicReference state]
+                     ^AtomicReference state
+                     released?]
   clojure.lang.IMeta
   (meta [a] meta)
   clojure.lang.IRef
@@ -41,9 +44,12 @@
   (addWatch [a k f] (do (core/swap! watches assoc k f) a))
   (removeWatch [a k] (do (core/swap! watches dissoc k) a))
   clojure.lang.IDeref
-  (deref [a] (.get state))
+  (deref [a]
+    (assert (not @released?) "Can't access a released atom.")
+    (.get state))
   IDurableAtom
   (-swap! [a f args]
+    (assert (not @released?) "Can't access a released atom.")
     (loop []
       (let [v (.get state)
             newv (apply f v args)]
@@ -53,7 +59,13 @@
                    (binding [*print-length* nil]
                      (-commit! resource newv))))
           (do (notify-watches a @watches v newv) newv)
-          (recur))))))
+          (recur)))))
+  (-release! [a]
+    (core/reset! released? true)
+    (-remove! resource)))
+
+(defn release! [enduro-atom]
+  (-release! enduro-atom))
 
 (defn swap!
   "Atomically swaps the value of enduro-atom to be:
@@ -77,7 +89,8 @@
                      (core/atom (:validator opts))
                      (core/atom {})
                      resource
-                     (AtomicReference. initial-state))
+                     (AtomicReference. initial-state)
+                     (core/atom false))
     (swap! identity)))
 
 (defn with-options-doc [doc]
@@ -122,7 +135,10 @@
       (Files/move (.toPath pending)
                   (.toPath f)
                   (into-array [StandardCopyOption/ATOMIC_MOVE
-                               StandardCopyOption/REPLACE_EXISTING])))))
+                               StandardCopyOption/REPLACE_EXISTING]))))
+  (-remove!
+    [this]
+    (.delete f)))
 
 (defn read-file
   "Reads the first Clojure expression from f, returning nil if f is empty."
@@ -156,7 +172,9 @@
 (deftype MemoryBackend [atm]
   IDurableBackend
   (-commit! [this value]
-    (core/reset! atm value)))
+    (core/reset! atm value))
+  (-remove! [this]
+    ))
 
 (defn mem-atom
   #=(with-options-doc "Creates and returns a memory-backed *non durable* atom for testing

@@ -5,6 +5,9 @@
 (defn create-enduro-table! [table-name]
   (sql/create-table table-name [:id :int] [:value :text]))
 
+(defn delete-enduro-table! [table-name]
+  (sql/drop-table table-name))
+
 (defn table-exists? [table-name]
   (sql/with-query-results
     tables ["SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"]
@@ -22,7 +25,10 @@
     (sql/with-connection db-config
       (sql/transaction
        (sql/update-or-insert-values
-        table-name ["id=?" 0] {:id 0 :value (pr-str value)})))))
+        table-name ["id=?" 0] {:id 0 :value (pr-str value)}))))
+  (-remove! [this]
+    (sql/with-connection db-config
+      (delete-enduro-table! table-name))))
 
 (defn postgresql-atom
   #=(e/with-options-doc "Creates and returns a PostgreSQL-backed atom. If the location
