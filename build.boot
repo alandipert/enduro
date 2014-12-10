@@ -7,7 +7,8 @@
                  [org.clojure/java.jdbc     "0.2.3"         :scope "test"]])
 
 (require '[tailrecursion.boot-useful :refer :all]
-         '[boot.pod                  :as    pod])
+         '[boot.pod                  :as    pod]
+         '[boot.core                 :as    core])
 
 (def +version+ "1.2.0")
 
@@ -44,6 +45,9 @@
    f filters EXPR #{any} "Clojure expressions that are evaluated with % bound to a Var in a namespace under test.  All must evaluate to true for a Var to be considered for testing by clojure.test/test-vars."
    p fresh-pod bool "Use a fresh pod for every test run (slower, but maybe avoids weird bugs?)"]
   (let [worker-pod (if (not fresh-pod) (make-testpod))]
+    (when-not fresh-pod
+      (core/cleanup
+       (pod/destroy-pod worker-pod)))
     (with-pre-wrap
       (if (seq namespaces)
         (let [pod      (or worker-pod (make-testpod))
@@ -54,6 +58,8 @@
                            (-> (reduce (partial merge-with +) ns-results)
                                (assoc :type :summary)
                                (doto t/do-report))))]
+          (when fresh-pod
+            (pod/destroy-pod pod))
           (when (> (apply + (map summary [:fail :error])) 0)
             (throw (ex-info "Some tests failed or errored" summary))))
         (println "No namespaces were tested.")))))
