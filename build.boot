@@ -1,5 +1,5 @@
 (set-env!
- :src-paths    #{"src"}
+ :src-paths    #{"src" "test"}
  :dependencies '[[org.clojure/clojure       "1.6.0"         :scope "provided"]
                  [boot/core                 "2.0.0-pre28"   :scope "provided"]
                  [tailrecursion/boot-useful "0.1.3"         :scope "test"]
@@ -15,12 +15,11 @@
 
 (deftask tests
   "Run tests in a pod using clojure.test"
-  [d dirs NAME #{str} "Source directories containing tests to add to the classpath."
-   n namespaces NAMESPACE #{sym} "Symbols of the namespaces to run tests in."
+  [n namespaces NAMESPACE #{sym} "Symbols of the namespaces to run tests in."
    p preds PRED #{any} "Clojure expressions that are evaluated with % bound to a Var in a namespace under test.  All must evaluate to true for a Var to be considered for testing by clojure.test/test-vars."]
   (with-pre-wrap
     (if (seq namespaces)
-      (let [pod     (pod/make-pod (update-in (get-env) [:src-paths] into dirs))
+      (let [pod     (pod/make-pod (get-env))
             predf  `(~'fn [~'%] (and ~@preds))
             summary (pod/eval-in pod
                       (require '[clojure.test :as t])
@@ -37,8 +36,7 @@
                             (assoc :type :summary)
                             (doto t/do-report))))]
         (when (> (apply + (map summary [:fail :error])) 0)
-          (shutdown-agents)
-          (System/exit 1)))
+          (throw (ex-info "Tests failed" summary))))
       (println "No namespaces were tested."))))
 
 (task-options!
@@ -49,6 +47,5 @@
        :scm         {:url "https://github.com/alandipert/enduro"}
        :license     {:name "Eclipse Public License"
                      :url  "http://www.eclipse.org/legal/epl-v10.html"}]
- tests [:dirs       '#{"test"}
-        :namespaces '#{alandipert.enduro-test}
+ tests [:namespaces '#{alandipert.enduro-test}
         :preds      '#{((comp not :postgres meta) %)}])
