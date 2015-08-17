@@ -2,7 +2,7 @@ language: clojure
 jdk:
 - oraclejdk8
 install:
-- wget -O boot https://github.com/boot-clj/boot/releases/download/v2-r1/boot.sh
+- wget -O boot https://github.com/boot-clj/boot/releases/download/2.2.0/boot.sh
 - chmod 755 boot
 - ./boot -V
 script: ./boot test
